@@ -1,0 +1,6 @@
+usage: ./njvm [option] [option] ...
+  --prog1          select program 1 to execute
+  --prog2          select program 2 to execute
+  --prog3          select program 3 to execute
+  --version        show version and exit
+  --help           show this help and exit

@@ -1,0 +1,98 @@
+ifndef::includedir[]
+ifndef::backend-pdf[]
+:includedir: ./
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a4/
+endif::[]
+endif::[]
+== KSP Aufgabe 4
+
+Jetzt wird's ernst... ;-)
+Mit der Lösung dieser Aufgabe steht Ihnen das komplette Ninja (mit Ausnahme der Array- und Record-Objekte) zur Verfügung. Sie können damit z.B. die folgenden Programme ausführen:
+a) link:{includedir}prog10.nj[ggT]
+b) link:{includedir}prog11.nj[n! rekursiv]
+c) link:{includedir}prog12.nj[n! iterativ]
+
+
+Aber schön der Reihe nach...
+
+=== Neue Instruktionen der VM
+
+.VM Instruktionen
+[cols="",opts="autowidth", id=a4_instructions]
+|===
+| Instruktion | Opcode | Stack Layout
+
+// | `halt`                   | `0`  | `+...  ->  ...+`
+// | `pushc <const>`          | `1`  | `+...  ->  ... value+`
+
+// | `add`                    | `2`  | `+... n1 n2  ->  ... n1+n2+`
+// | `sub`                    | `3`  | `+... n1 n2  ->  ... n1-n2+`
+// | `mul`                    | `4`  | `+... n1 n2  ->  ... n1*n2+`
+// | `div`                    | `5`  | `+... n1 n2  ->  ... n1/n2+`
+// | `mod`                    | `6`  | `+... n1 n2  ->  ... n1%n2+`
+
+// | `rdint`                  | `7`  | `+...  ->  ... value+`
+// | `wrint`                  | `8`  | `+... value  ->  ...+`
+// | `rdchr`                  | `9`  | `+...  ->  ... value+`
+// | `wrchr`                  | `10` | `+... value  ->  ...+`
+
+// |`pushg <n>`              | `11` | `+...  ->  ... value+`
+// |`popg  <n>`              | `12` | `+... value  ->  ...+`
+// |`asf   <n>`              | `13` |
+// |`rsf`                    | `14` |
+// |`pushl <n>`              | `15` | `+...  ->  ... value+`
+// |`popl  <n>`              | `16` | `+... value  ->  ...+`
+
+
+// |`eq`                     |`17`| `+... n1 n2  ->  ... n1==n2+`
+// |`ne`                     |`18`| `+... n1 n2  ->  ... n1!=n2+`
+// |`lt`                     |`19`| `+... n1 n2  ->  ... n1<n2+`
+// |`le`                     |`20`| `+... n1 n2  ->  ... n1<=n2+`
+// |`gt`                     |`21`| `+... n1 n2  ->  ... n1>n2+`
+// |`ge`                     |`22`| `+... n1 n2  ->  ... n1>=n2+`
+
+// |`jmp   <target>`         | `23` | `+...  ->  ...+`
+// |`brf   <target>`         | `24` | `+... b  ->  ...+`
+// |`brt   <target>`         | `25` | `+... b  ->  ...+`
+
+
+|`call  <target>`         |`26`| `+...  ->  ... ra+`
+|`ret`                    |`27`| `+... ra  ->  ...+`
+|`drop  <n>`              |`28`| `+... a0 a1...an-1  ->  ...+`
+|`pushr`                  |`29`| `+...  ->  ... rv+`
+|`popr`                   |`30`| `+... rv  ->  ...+`
+|`dup`                    |`31`| `+... n -> ... n n+`
+
+|===
+
+
+
+1. Hier ist eine Diskussion der Instruktionen zum Unterprogrammaufruf und in <<a4_instructions>> eine Liste aller Instruktionen der VM dieser Version.
+
+2. Realisieren Sie Unterprogrammsprünge und -rücksprünge mit den Instruktionen `call` und `ret`. Hier ist ein link:{includedir}prog01.asm[Testprogramm ohne Argumente und ohne Rückgabewert]. Sie sollten die Ausführung mit Hilfe Ihres Debuggers im Einzelschrittverfahren genau verfolgen können.
+
+3. Implementieren Sie die Instruktion `drop` und testen Sie den Zugriff auf die Argumente einer Prozedur mit diesem link:{includedir}prog02.asm[Testprogramm].
+
+4. Fügen Sie das Rückgaberegister zur Maschinenarchitektur hinzu und implementieren Sie die Instruktionen `pushr` und `popr`. Sie können die Rückgabe eines Wertes mit diesem link:{includedir}prog03.asm[Testprogramm] überprüfen.
+
+5. Dann sollte schließlich dieses link:{includedir}prog04.asm[Testprogramm] ohne weitere Arbeit funktionieren.
+
+6. Implementieren Sie die Instruktion `dup`, die den obersten Stackeintrag dupliziert: `... n --> ... n n`
+
+7. Der zu dieser Aufgabenstellung gehörende Assembler ist natürlich auch verfügbar: link:{includedir}nja[nja]
+
+8. Zu guter Letzt hier wieder die Referenzimplementierung: link:{includedir}njvm[]
+
+=== Der Ninja-Compiler
+
+Nun gibt's eine erste Version des link:{includedir}njc[Ninja-Compilers] - noch ohne Arrays, Records und anderen Schnickschnack, aber mit Prozeduren und Funktionen, Kontrollstrukturen, Zuweisungen und Ausdrücken. Die link:{includedir}grammar[Grammatik] zusammen mit den link:{includedir}tokens[Tokens] und den link:{includedir}predef[vordefinierten Bezeichnern] beschreibt, wie ein korrektes Ninja-Programm (in unserem noch etwas reduzierten Sprachumfang) aussieht.
+
+1. Übersetzen Sie die drei ganz oben genannten Testprogramme mit Hilfe des Ninja-Compilers. Der Output ist Ninja-Assembler und kann z.B. mit einem Texteditor angeschaut werden. Versuchen Sie, jedes vom Compiler generierte Assembler-Statement einer Ninja-Quelltext-Anweisung zuzuordnen. Wenn Sie Fragen dazu haben, diskutieren Sie diese bitte mit den Betreuern im Praktikum!
+
+2. Assemblieren Sie die drei Testprogramme und lassen Sie sie durch Ihre VM ausführen. Verfolgen Sie die Ausführung mit dem Debugger Ihrer VM.
+
+3. Schreiben Sie mindestens fünf weitere Testprogramme, entweder in Ninja oder in Assembler, um sicherzugehen, dass die VM korrekt funktioniert. Loten Sie dabei auch Konstruktionen aus, die bisher nicht Bestandteil der Tests waren. Ein Beispiel: Kann eine Funktion in ihrem Return-Statement eine andere Funktion aufrufen? Geht das auch geschachtelt?
+
+4. Welche Sequenz von Instruktionen erzeugt der Compiler für das logische `und` und das logische `oder`? Erklären Sie genau, wie damit die Kurzschlussauswertung implementiert wird!

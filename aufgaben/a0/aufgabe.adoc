@@ -1,0 +1,41 @@
+ifndef::includedir[]
+ifndef::backend-pdf[]
+:includedir: ./
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a0/
+endif::[]
+endif::[]
+
+== KSP Aufgabe 0
+
+. Entwerfen Sie ein C-Programm `njvm.c`, das nur aus der Funktion `int main(int argc, char * argv[])` besteht und beim Aufruf die beiden Strings `Ninja Virtual Machine started\n` und `Ninja Virtual Machine stopped\n` ausgibt.
+
+. Modifizieren Sie Ihr Programm aus 1. so, dass es alle Kommandozeilenargumente vor den beiden Strings ausgibt.
+
+. Modifizieren Sie Ihr Programm aus 1. so, dass das Programm sowohl sinnvoll auf die Kommandozeilenargumente `--version` und `--help` reagiert als auch unbekannte Argumente zurückweist. Sie können die folgende Referenzimplementierung als Vorbild für das Verhalten Ihres Programms nehmen (machen Sie das Programm nach dem Download ggf. mit `chmod +x njvm` ausführbar, bevor Sie es mit `./njvm` aufrufen): link:{includedir}njvm[njvm]
+
+=== Hinweise Aufgabe 0
+
+. Verwenden Sie den C-Compiler `gcc` mit den Compilerschaltern `-g -Wall -std=c99 -pedantic` und beheben Sie alle Fehler und Warnungen, die der Compiler evtl. ausgibt. Wenn Sie eine Warnung ignorieren wollen, müssen Sie EXAKT erklären können, warum diese spezielle Warnung in diesem speziellen Fall wirklich unschädlich ist.
+
+. Sie beginnen bereits in dieser Übung, das Programm zu entwickeln, das Sie am Ende des Semesters als Ihre zweite Hausübung abgeben werden und das dann einen erheblichen Umfang haben wird. Bemühen Sie sich also schon jetzt um Klarheit in der Programmierung, ausreichend viele und aussagekräftige Kommentare, konsistentes Einrücken, usw.!
+
+
+.Beispielausgabe Referenzimplementierung `njvm`
+[source, shell]
+--
+$ ./njvm
+Ninja Virtual Machine started
+Ninja Virtual Machine stopped
+$ ./njvm --help
+usage: ./njvm [option] [option] ...
+  --version        show version and exit
+  --help           show this help and exit
+$ ./njvm --version
+Ninja Virtual Machine version 0 (compiled Sep 23 2015, 10:36:52)
+$ ./njvm --foo
+unknown command line argument '--foo', try './njvm --help'
+$ ./njvm bar
+unknown command line argument 'bar', try './njvm --help'
+--

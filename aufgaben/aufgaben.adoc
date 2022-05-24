@@ -1,0 +1,129 @@
+= KSP Aufgaben
+:imagesdir: images
+:icons: font
+:toc:
+:revealjs_plugins: config/revealjs-plugins.js
+:revealjs_plugins_configuration: config/revealjs-plugins-conf.js
+:revealjs_theme: mymoon
+:revealjs_slideNumber: true
+:revealjs_width: 1400
+:revealjs_height: 900
+:revealjs_history: true
+:revealjs_plugin_pdf: enabled
+:revealjs_center: true
+:revealjs_fragments: true
+:customcss: custom.css
+:source-highlighter: rouge
+:iconfont-remote!:
+:iconfont-name: fonts/fontawesome/css/rall
+:xrefstyle: short
+ifdef::backend-revealjs[]
+:source-highlighter: highlightjs
+endif::[]
+:stem: latexmath
+:appendix-caption: Anhang
+:appendix-refsig: {appendix-caption}
+:caution-caption: Achtung
+:chapter-label: Kapitel
+:chapter-refsig: {chapter-label}
+:example-caption: Beispiel
+:figure-caption: Abbildung
+:important-caption: Wichtig
+:last-update-label: Zuletzt aktualisiert
+ifdef::listing-caption[:listing-caption: Listing]
+ifdef::manname-title[:manname-title: Bezeichnung]
+:note-caption: Anmerkung
+:part-label: Teil
+:part-refsig: {part-label}
+ifdef::preface-title[:preface-title: Vorwort]
+:section-refsig: Abschnitt
+:table-caption: Tabelle
+:tip-caption: Hinweis
+:toc-title: Inhaltsverzeichnis
+:untitled-label: Ohne Titel
+:version-label: Version
+:warning-caption: Warnung
+
+ifndef::backend-pdf[]
+:includedir: a-pre/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a-pre/
+endif::[]
+
+
+include::a-pre/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a0/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a0/
+endif::[]
+
+
+include::a0/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a1/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a1/
+endif::[]
+include::a1/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a2/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a2/
+endif::[]
+include::a2/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a3/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a3/
+endif::[]
+include::a3/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a4/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a4/
+endif::[]
+include::a4/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a5/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a5/
+endif::[]
+include::a5/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a6/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a6/
+endif::[]
+include::a6/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a7/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a7/
+endif::[]
+include::a7/aufgabe.adoc[]
+
+ifndef::backend-pdf[]
+:includedir: a8/
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a8/
+endif::[]
+include::a8/aufgabe.adoc[]

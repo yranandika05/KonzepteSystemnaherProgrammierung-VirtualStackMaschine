@@ -1,0 +1,51 @@
+//.*			comment (ignored)
+
+break			BREAK
+do			DO
+else			ELSE
+global			GLOBAL
+if			IF
+local			LOCAL
+return			RETURN
+void			VOID
+while			WHILE
+
+(			LPAREN
+)			RPAREN
+{			LCURL
+}			RCURL
+=			ASGN
+,			COMMA
+;			SEMIC
+||			LOGOR
+&&			LOGAND
+!			LOGNOT
+==			EQ
+!=			NE
+<			LT
+<=			LE
+>			GT
+>=			GE
++			PLUS
+-			MINUS
+*			STAR
+/			SLASH
+%			PERCENT
+
+false			BOOLEANLIT
+true			BOOLEANLIT
+
+[0-9]+			INTEGERLIT
+0x[0-9A-Fa-f]+		INTEGERLIT
+
+'\n'			CHARACTERLIT
+'\r'			CHARACTERLIT
+'\t'			CHARACTERLIT
+'\b'			CHARACTERLIT
+'\a'			CHARACTERLIT
+'\''			CHARACTERLIT
+'\"'			CHARACTERLIT
+'\\'			CHARACTERLIT
+'.'			CHARACTERLIT
+
+[A-Za-z_][A-Za-z_0-9]*	IDENT

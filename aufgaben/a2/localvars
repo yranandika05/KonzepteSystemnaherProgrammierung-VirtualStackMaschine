@@ -1,0 +1,64 @@
+Stack Frames
+------------
+
+A "stack frame" is a part of the stack. The "current stack frame"
+is the stack area between the stack pointer and the frame pointer.
+It holds the local variables of the currently executing procedure.
+
+                         |                  |
+                         |                  |
+                         |  u n u s e d     |
+                         |                  |
+stack pointer sp  ---->  |                  |          /|\
+                         +------------------+           |
+                         |                  |           |
+                         |                  |           |
+                         |  current frame   |           |
+                         |                  |
+frame pointer fp  ---->  |                  |   direction of growth
+                         +------------------+
+                         |                  |
+                         |                  |
+                         |  previous frame  |
+                         |                  |
+                         |                  |
+
+The instruction "asf <n>" allocates a new stack frame with
+n places for local variables. It works like this:
+    push(fp)
+    fp = sp
+    sp = sp + n
+
+The instruction "rsf" releases the current stack frame and
+makes the previous stack frame the current one:
+    sp = fp
+    fp = pop()
+
+
+Push/Pop Instructions for Local Variables
+-----------------------------------------
+
+The instruction "pushl <n>" pushes a value from the variable
+at position n in the current stack frame onto the stack.
+
+pushl       ...  -->  ... value
+
+The instruction "popl <n>" stores a value into the variable at
+position n in the current stack frame. The value comes from
+popping the stack.
+
+popl        ... value  -->  ...
+
+Here is an example: Let us assume that the variabe x resides at
+location 2 in the current stack frame, y at location 5. The statement
+
+    x = 3 * x + y;
+
+can then be executed by the following sequence of instructions:
+
+	pushc	3
+	pushl	2
+	mul
+	pushl	5
+	add
+	popl	2

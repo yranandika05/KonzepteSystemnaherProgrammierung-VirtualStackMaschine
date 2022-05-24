@@ -1,0 +1,160 @@
+Record Objects
+--------------
+
+Records are data structures with members of possibly different
+types. In Ninja, instances of records are created dynamically
+with the "new" operator. (Note: In object-oriented languages,
+records are called classes, instances of records are objects,
+and their members are called "instance variables" or "fields".)
+
+Records must provide places to store the values of their member
+variables. As an example, we assume a record type named "Point":
+
+type Point = record {
+  Integer x;
+  Integer y;
+};
+
+An instance of Point contains the two member variables x and y:
+
+        +----------------+
+------> | value of x     |
+        +----------------+
+        | value of y     |
+        +----------------+
+
+In order to compute with instance variables, we need two new
+instructions, "push instance variable" and "pop instance variable".
+Such an instruction contains the number of the instance variable to
+be pushed or popped (this is called the "offset" relative to the
+beginning of the object). But how does the VM know in which object
+an instance variable should be addressed? Solution: the top-of-stack
+element must be a pointer to the object in question. The instructions
+are then appropriately named "get field" (getf, with object on TOS)
+and "put field" (putf, with value on TOS and object one below TOS).
+The immediate field of both instructions is used for the offset of
+the field within the object.
+
+getf        ... object  -->  ... value
+putf        ... object value  -->  ...
+
+Example: We write a procedure "move", which takes a Point and "moves"
+it by another Point, i.e., it changes x and y coordinates of the first
+point by adding the respective coordinates of the second Point.
+
+void move(Point p, Point delta) {
+  p.x = p.x + delta.x;
+  p.y = p.y + delta.y;
+}
+
+Here is the commented assembler version of "move":
+
+move:
+	asf	0	// no local variables
+	pushl	-4	// push p (used by putf, see below)
+	pushl	-4	// push p again
+	getf	0	// get p.x (instance var offset 0)
+	pushl	-3	// push delta
+	getf	0	// get delta.x (instance var offset 0)
+	add		// p.x + delta.x
+	putf	0	// put p.x (p is already on stack, see above)
+	pushl	-4	// push p (used by putf, see below)
+	pushl	-4	// push p again
+	getf	1	// get p.y (instance var offset 1)
+	pushl	-3	// push delta
+	getf	1	// get delta.y (instance var offset 1)
+	add		// p.y + delta.y
+	putf	1	// put p.y (p is already on stack, see above)
+	rsf
+	ret
+
+How do we create new objects? The compiler knows how many fields
+(instance variables) the object must have, so we invent a single
+instruction "new" which has an embedded constant in its immediate
+part, the number of fields:
+
+new         ...  -->  ... object
+
+Example: The Ninja expression new(Point) may be compiled to the
+single instruction
+
+	new	2	// create a new object with 2 fields
+
+
+Array Objects
+-------------
+
+Arrays are data structures with elements which are all of the
+same type. In Ninja, instances of arrays are created dynamically
+with the "new" operator.
+
+Array objects share many properties with record objects, with the
+exception that accesses to fields do not have an offset which is
+known at compile-time, but rather is computed at run-time and
+therefore found on the stack (as opposed to records: there the
+offset is known at compile-time and can be encoded within the
+instructions).
+
+So there are the instructions "get field from array" (getfa) and
+"put field to array" (putfa):
+
+getfa       ... array index  -->  ... value
+putfa       ... array index value  -->  ...
+
+When creating a new array, the number of elements is also not
+known at compile-time. It is computed during run-time and thus
+found on the stack:
+
+newa        ... number_elements  -->  ... array
+
+Example: The Ninja expression new(Integer[n]) may be compiled
+to the instruction sequence
+
+	pushl	4	// local var #4 holds number of elements
+	newa		// create array with that many elements
+
+(assuming that n is local variable #4 in the current stack frame).
+
+It must be possible to determine the size of an array at run-time
+(in order, e.g., to iterate over its elements). For this, we have
+the instruction "get size" (getsz). As the name indicates, this
+instruction works not only for arrays, but for any object:
+
+getsz       ... object  -->  ... number_fields
+
+How does this instruction compute the number of fields? Since
+every array may have a unique length, there is no other way
+than storing the length within the object. Knowing the size
+of an object is not only necessary for arrays, but beneficial
+generally. So we add an unsigned integer to the representation
+of each object, identifying its size.
+
+
+Primitive Objects
+-----------------
+
+We must keep the ability to store numbers, of course. Thus
+there exist objects which do not store references to other
+objects, but hold "primitive data" instead. For several
+reasons, we do not want to mix primitive data and object
+references within a single object. But this is never the
+case in our system, because a single integer, for example,
+is represented by a separate object (which only holds some
+bytes of "primitive data" - the bit representation of the
+integer's value). Every other object which uses the integer
+in fact manipulates the pointer referencing the object.
+
+We should be able to determine if the object holds references
+to other objects, or a number of bytes of primitive data. It
+is convenient to use the MSB (most significant bit) of the
+size to distinguish the two cases: MSB = 1 means that the
+object contains only object references (and the 31 remaining
+bits are the number of object pointers within the object);
+MSB = 0 means that the object contains only primitive data
+and hence no object pointers (and the remaining 31 bits are
+the number of bytes holding the primitive data).
+
+Finally, we need a convention what "getsz" should return in
+case of primitive objects. Since a value n >= 0 describes the
+object as having n fields, we define -1 as return value for
+primitive objects.

@@ -1,0 +1,35 @@
+Static Data Area
+----------------
+
+The "static data area" is used to store the values of global
+variables. It has a constant size, which is given in the binary
+program file to be executed (see "Ninja Binary Format").
+
+
+Push/Pop Instructions for Global Variables
+------------------------------------------
+
+The instruction "pushg <n>" pushes a value from the global variable
+at position <n> in the static data area onto the stack.
+
+pushg       ...  -->  ... value
+
+The instruction "popg <n>" stores a value into the global variable
+at position <n> in the static data area. The value comes from
+popping the stack.
+
+popg        ... value  -->  ...
+
+Here is an example: Let us assume that the variabe x resides at
+location 2 in the static data area, y at location 5. The statement
+
+    x = 3 * x + y;
+
+can then be executed by the following sequence of instructions:
+
+	pushc	3
+	pushg	2
+	mul
+	pushg	5
+	add
+	popg	2

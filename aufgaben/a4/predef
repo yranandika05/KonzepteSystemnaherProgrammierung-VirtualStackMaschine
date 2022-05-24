@@ -1,0 +1,18 @@
+Built-in Types
+--------------
+
+Integer    : primitive
+Character  : primitive
+Boolean    : primitive
+
+
+Library Functions
+-----------------
+
+Integer readInteger()            : read an integer
+void writeInteger(Integer)       : write an integer
+Character readCharacter()        : read a character
+void writeCharacter(Character)   : write a character
+Integer char2int(Character)      : get ASCII code from character
+Character int2char(Integer)      : get character from ASCII code
+void exit()                      : terminate program immediately

@@ -1,0 +1,13 @@
+newInnerNode(
+  '-',
+  newLeafNode(5),
+  newInnerNode(
+    '*',
+    newInnerNode(
+      '+',
+      newLeafNode(1),
+      newLeafNode(3)),
+    newInnerNode(
+      '-',
+      newLeafNode(4),
+      newLeafNode(7))))

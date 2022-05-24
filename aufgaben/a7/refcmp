@@ -1,0 +1,19 @@
+Comparing References
+--------------------
+
+In order to be able to execute a statement like
+    if (x == nil) {...}
+we must push the representation of nil onto the stack
+and do a comparison of object references (instead of
+comparing the contents of the referenced objects).
+Thus we have three new instructions for the VM:
+
+pushn       ...  -->  ... nil
+refeq       ... ref1 ref2  -->  ... ref1==ref2
+refne       ... ref1 ref2  -->  ... ref1!=ref2
+
+The representation of nil can simply be the NULL pointer.
+We then also define the value of instance variables (i.e.,
+variables within records and arrays) to be nil initially.
+The same definition holds for local and global variables.
+Note that the VM is responsible for this initialization.

@@ -1,0 +1,41 @@
+Ninja Binary Format
+-------------------
+
+A binary file produced by the assembler, ready for loading into
+the Ninja VM, has the following structure:
+
+  4 bytes        'N', 'J', 'B', 'F' (identifies the format)
+  4 bytes        version number (must match the VM's version number)
+  4 bytes        number of instructions contained in the file
+  4 bytes        number of variables in the static data area
+  n * 4 bytes    instructions (the program to be executed)
+
+
+Executing a Binary File
+-----------------------
+
+When the Ninja VM wants to load and execute a binary file, the
+following actions must be performed:
+
+1) Read the first 4 bytes of the file.
+   Verify the format identifier.
+   NOTE: There is no terminating null character!
+
+2) Read the version number.
+   Verify that this matches the current VM's version number.
+
+3) Read the number of instructions.
+   Allocate memory to hold exactly this many instructions.
+   NOTE: Instructions, not bytes!
+
+4) Read the numer of variables in the static data area.
+   Allocate memory to hold exactly this many variables.
+   NOTE: Variables, not bytes!
+
+5) Read the rest of the file into the memory allocated in step 3).
+
+6) Allocate a sufficiently large stack (10000 stack slots are
+   enough), either statically, or dynamically via malloc().
+
+7) Set the program counter, the stack pointer, and the frame
+   pointer to zero, and begin execution of the program.

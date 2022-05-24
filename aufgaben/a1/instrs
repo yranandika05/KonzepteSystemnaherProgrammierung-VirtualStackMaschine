@@ -1,0 +1,17 @@
+VM Instructions
+---------------
+
+halt                   0
+
+pushc <const>          1
+
+add                    2
+sub                    3
+mul                    4
+div                    5
+mod                    6
+
+rdint                  7
+wrint                  8
+rdchr                  9
+wrchr                  10

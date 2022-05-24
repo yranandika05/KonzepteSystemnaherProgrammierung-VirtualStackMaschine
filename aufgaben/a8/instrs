@@ -1,0 +1,58 @@
+VM Instructions
+---------------
+
+halt                   0
+
+pushc <const>          1
+
+add                    2
+sub                    3
+mul                    4
+div                    5
+mod                    6
+
+rdint                  7
+wrint                  8
+rdchr                  9
+wrchr                  10
+
+pushg <n>              11
+popg  <n>              12
+
+asf   <n>              13
+rsf                    14
+pushl <n>              15
+popl  <n>              16
+
+eq                     17
+ne                     18
+lt                     19
+le                     20
+gt                     21
+ge                     22
+
+jmp   <target>         23
+brf   <target>         24
+brt   <target>         25
+
+call  <target>         26
+ret                    27
+drop  <n>              28
+pushr                  29
+popr                   30
+
+dup                    31
+
+new   <n>              32
+getf  <n>              33
+putf  <n>              34
+
+newa                   35
+getfa                  36
+putfa                  37
+
+getsz                  38
+
+pushn                  39
+refeq                  40
+refne                  41

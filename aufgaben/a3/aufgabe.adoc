@@ -1,0 +1,73 @@
+ifndef::includedir[]
+ifndef::backend-pdf[]
+:includedir: ./
+endif::[]
+ifdef::backend-pdf[]
+:includedir: https://git.thm.de/arin07/KSP_public/-/blob/master/aufgaben/a3/
+endif::[]
+endif::[]
+
+== KSP Aufgabe 3
+
+1. Implementieren Sie die neuen Instruktionen zum Testen von Zahlen (`eq`, `ne`, `lt`, `le`, `gt`, `ge`), die die numerischen Vergleiche (`==`, `!=`, `<`, `<=`, `>`, `>=`) repräsentieren. Die Auswirkungen auf den Stack können Sie wieder in der Spalte Stack Layout der <<a3_instructions>> sehen. Das Ergebnis eines Vergleichs, ein Boole'scher Wert, wird durch die ganze Zahl `0` für `false` bzw. `1` für `true` dargestellt. Natürlich gibt's einen link:{includedir}nja[Assembler] , der auch die neuen Instruktionen assemblieren kann.
+
+
+.VM Instruktionen
+[cols="",opts="autowidth", id=a3_instructions]
+|===
+| Instruktion | Opcode | Stack Layout
+
+// | `halt`                   | `0`  | `+...  ->  ...+`
+// | `pushc <const>`          | `1`  | `+...  ->  ... value+`
+
+// | `add`                    | `2`  | `+... n1 n2  ->  ... n1+n2+`
+// | `sub`                    | `3`  | `+... n1 n2  ->  ... n1-n2+`
+// | `mul`                    | `4`  | `+... n1 n2  ->  ... n1*n2+`
+// | `div`                    | `5`  | `+... n1 n2  ->  ... n1/n2+`
+// | `mod`                    | `6`  | `+... n1 n2  ->  ... n1%n2+`
+
+// | `rdint`                  | `7`  | `+...  ->  ... value+`
+// | `wrint`                  | `8`  | `+... value  ->  ...+`
+// | `rdchr`                  | `9`  | `+...  ->  ... value+`
+// | `wrchr`                  | `10` | `+... value  ->  ...+`
+
+// |`pushg <n>`              | `11` | `+...  ->  ... value+`
+// |`popg  <n>`              | `12` | `+... value  ->  ...+`
+// |`asf   <n>`              | `13` |
+// |`rsf`                    | `14` |
+// |`pushl <n>`              | `15` | `+...  ->  ... value+`
+// |`popl  <n>`              | `16` | `+... value  ->  ...+`
+
+
+|`eq`                     |`17`| `+... n1 n2  ->  ... n1==n2+`
+|`ne`                     |`18`| `+... n1 n2  ->  ... n1!=n2+`
+|`lt`                     |`19`| `+... n1 n2  ->  ... n1<n2+`
+|`le`                     |`20`| `+... n1 n2  ->  ... n1<=n2+`
+|`gt`                     |`21`| `+... n1 n2  ->  ... n1>n2+`
+|`ge`                     |`22`| `+... n1 n2  ->  ... n1>=n2+`
+
+|`jmp   <target>`         | `23` | `+...  ->  ...+`
+|`brf   <target>`         | `24` | `+... b  ->  ...+`
+|`brt   <target>`         | `25` | `+... b  ->  ...+`
+
+|===
+
+
+
+2. Nehmen Sie sich dann den unbedingten Sprung `jmp` sowie die beiden bedingten Sprünge (_branch on false_ `brf` und _branch on true_ `brt`) vor. Der Immediate-Wert in diesen Instruktionen gibt das Sprungziel an. Die bedingten Sprünge prüfen das oberste Stack-Element, um zu entscheiden, ob gesprungen wird. Wenn nicht gesprungen wird, kommt die nächste Instruktion zur Ausführung. Die Auswirkungen auf den Stack können Sie wieder in der Spalte Stack Layout in <<a3_instructions>> sehen. Der Assembler hat eine neue Kommandozeilenoption `--map`; was kann man eigentlich mit der anfangen?
+
+
+=== Teilaufgabe: Interaktiver Debugger
+
+Nun kommt die erste etwas größere Aufgabe: *ein interaktiver Debugger* für Ihre VM. Die Instruktionen werden komplizierter, die auszuführenden Programme umfangreicher - man wünscht sich, mehr über den inneren Zustand der VM zu erfahren, speziell wenn Fehler auftreten.
+
+a) Im Gegensatz zu den früheren Aufgaben soll ab jetzt das Programm nach dem Laden nicht mehr automatisch gelistet werden, sondern einfach nur ausgeführt werden. Wenn man aber die VM mit dem Kommandozeilenschalter `--debug` startet, soll sich nach dem Laden des Programms der interaktive Debugger melden und auf Kommandos warten, die er dann ausführt.
+
+b) Schreiben Sie eine kurze, aber exakte Spezifikation, welche Kommandos Ihr Debugger verstehen soll. Als kleiner Hinweis für diejenigen, die sich wenig unter einem solchen Teil vorstellen können: Was wünscht man sich, um den Programmverlauf verfolgen oder vielleicht sogar beeinflussen zu können? Lassen Sie doch einfach mal dieses link:{includedir}prog1.asm[Beispielprogramm 1] laden und stellen Sie sich vor, es würde nicht das gewünschte Ergebnis (den größten gemeinsamen Teiler zweier positiver Zahlen) liefern. Natürlich können Sie das auch ganz praktisch ausprobieren, indem Sie irgendeine Instruktion (z.B. das zweite `brf`) in eine andere Instruktion (z.B. `brt`) umändern, oder noch besser: von Ihrem anderen Grupenmitglied umändern lassen, ohne dass Sie wissen, was da passiert ist. Was braucht man dann für Hilfsmittel, um den Fehler zu lokalisieren?
+
+Als Minimalmenge müssen die Kommandos: _Anzeigen des Stacks_,  _Anzeigen der statischen Daten_,  _Listen des Programms_, _Ausführen des nächsten Befehls_, _Weiterlaufen ohne Anhalten_ und _Verlassen der VM_ aufgenommen werden.
+
+Sehr zweckmäßig ist auch das _Setzen eines Breakpoints_ (wenn das Programm bei der Ausführung später dort vorbeikommt, hält es an und der Debugger übernimmt die Kontrolle). Anregungen können Sie sich natürlich wie immer auch von der Referenzimplementierung holen: link:{includedir}njvm[njvm]
+
+c) Implementieren Sie nun die von Ihnen vorgesehen Kommandos des Debuggers. Prüfen Sie mit dem link:{includedir}prog1.asm[Beispielprogramm 1] und link:{includedir}prog2.asm[Beispielprogramm 2] sowie anderen, von Ihnen geschriebenen Testprogrammen, ob der Debugger das leistet, was Sie sich von ihm erwarten. Wahrscheinlich fallen Ihnen noch Verbesserungen ein - dann gehen Sie zurück zu b).
+
