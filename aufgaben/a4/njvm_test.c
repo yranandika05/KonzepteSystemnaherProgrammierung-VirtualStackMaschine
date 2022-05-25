@@ -103,16 +103,16 @@ void pushValue(int x) {
 }
 
 void add(void) {
-    //opresult = popValue() + popValue();
     pushValue(popValue() + popValue());
 }
 
 void sub(void) {
-    pushValue(opresult = popValue() - popValue());
+    opresult = popValue();
+    pushValue(popValue() - opresult);
 }
 
 void mul(void) {
-    pushValue(opresult = popValue() * popValue());
+    pushValue( popValue() * popValue());
 }
 
 void divide(void) {
@@ -121,8 +121,7 @@ void divide(void) {
         printf("divisor cannot be 0");
         exit(2);
     }
-    opresult = popValue() / opresult;
-    pushValue(opresult);
+    pushValue(popValue() / opresult);
 }
 
 void mod(void) {
@@ -151,7 +150,7 @@ void wrchr(void) {
 }
 
 void pushg(int indexGlobal){
-    if(indexGlobal > binaryData[3]){
+    if(indexGlobal >= binaryData[3]){
         printf("The entered index is outside the stack data area.\n");
     }else{
         pushValue(sda[indexGlobal]);
@@ -159,7 +158,7 @@ void pushg(int indexGlobal){
 }
 
 void popg(int indexGlobal){
-    if(indexGlobal > binaryData[3]){
+    if(indexGlobal >= binaryData[3]){
          printf("The entered index is outside the stack data area\n");
     }else{
        sda[indexGlobal]= popValue();
@@ -168,7 +167,7 @@ void popg(int indexGlobal){
 
 //Allocate Stack Frame
 void asf(int asfLength){           
-    if((fp + asfLength)<1000){
+    if((fp + asfLength)<MAXITEMS){
         pushValue(fp);
         fp = sp;
         sp = sp + (asfLength);
@@ -200,19 +199,23 @@ void ne(void){
 }
 
 void lt(void){
-    pushValue(popValue() < popValue());
+    opresult = popValue();
+    pushValue(popValue() < opresult);
 }
 
 void le(void){
-    pushValue(popValue() <= popValue());
+    opresult = popValue();
+    pushValue(popValue() <= opresult);
 }
 
 void gt(void){
-    pushValue(popValue() > popValue());
+    opresult = popValue();
+    pushValue(popValue() > opresult);
 }
 
 void ge(void){
-    pushValue(popValue() >= popValue());
+    opresult = popValue();
+    pushValue(popValue() >= opresult);
 }
 
 void jmp(int x){
@@ -507,16 +510,24 @@ void inspectStack(void){
     if(sp == 0){
         printf("sp,fp       -->     %04d:   xxxx\n",sp);
     }else{
-        printf("sp      --> %04d:   xxx\n",sp);
-        
-        for(i=sp-1; i>fp;i--){
-            printf("             %04d:   %d",i,stack[i]);
-        }
-        printf("fp      --> %04d:   %d\n",fp,stack[fp]);
-        if(fp!=0){
-            for(j=fp-1; j>=0; j--){
-                printf("             %04d:   %d\n",j,stack[j]);
+        if(sp == fp){
+            printf("sp,fp   -->     %04d:   xxxx\n",sp);
+            for(i=sp-1; i>=0;i--){
+                printf("                %04d:   %d\n",i,stack[i]);
             }
+
+        }else{
+            printf("sp      -->  %04d:   xxx\n",sp);
+            for(i=sp-1; i>fp;i--){
+            printf("             %04d:   %d\n",i,stack[i]);
+            }
+
+            printf("fp      -->  %04d:   %d\n",fp,stack[fp]);
+            if(fp!=0){
+                for(j=fp-1; j>=0; j--){
+                printf("             %04d:   %d\n",j,stack[j]);
+                }
+            } 
         }
     }
     printf("                ---- bottom of stack ----\n");
@@ -560,7 +571,6 @@ void breakPoint(void){
 
 void step(void){
     instruction = programMemory[pc];
-    print(instruction);
     pc++;
     execute(instruction);
 
@@ -572,6 +582,8 @@ void step(void){
 void debugger(void){
     printf("DEBUG : file '%s' loaded (code size = %d, data size = %d)\n",dataName,binaryData[2], binaryData[3]);
     while(isQuit == 0){
+        instruction = programMemory[pc];
+        print(instruction);
         printf("DEBUG: inspect, list, breakpoint, step, run, quit?\n");
         scanf("%s",charMemory);
         if(strcmp(charMemory,"quit")==0){
