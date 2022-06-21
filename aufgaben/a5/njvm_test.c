@@ -1,6 +1,7 @@
  #include <stdio.h>
  #include <string.h>
  #include <stdlib.h>
+ #include <ctype.h>
  #define IMMEDIATE(x) (x & 0x00FFFFFF)
  #define SIGN_EXTEND(i) ((i) & 0x00800000 ? (i) | 0xff000000 : (i) )     // for negative value
 
@@ -57,16 +58,12 @@ char* dataName;
 int stopPoint = -1;
 int isQuit = 0;
 int debugIsOn = 0;
-int registerValue;
-
-StackSlot stack[MAXITEMS];        //Stack
-ObjektRef *sda;                     //static data area
-ObjektRef opresult;                 // result of each operation
+int opresult;
 
 typedef struct objectType{
     unsigned int size;
     unsigned char data[1];
-}*ObjektRef
+}*ObjektRef;
 
 typedef struct stackType{
     int isObjektRef;
@@ -76,11 +73,14 @@ typedef struct stackType{
     }u;
 }StackSlot;
 
-
+StackSlot stack[MAXITEMS];        //Stack
+ObjektRef *sda;                     //static data area
+ObjektRef tempresult;                 // result of each operation
+ObjektRef registerValue;
 
 //GENERATE DATA STATIC AREA and PROGRAM MEMORY
 void generateMemory(int programMemoryLength, int dataStaticAreaLength){
-    sda = (int*)malloc(dataStaticAreaLength * sizeof(int));
+    sda = (ObjektRef*)malloc(dataStaticAreaLength * sizeof(int));
     if(sda == NULL){
         printf("The data static area is not generated! \n");
         exit(1);
@@ -92,14 +92,32 @@ void generateMemory(int programMemoryLength, int dataStaticAreaLength){
     }
 }
 
+ObjektRef ObjektSpeicher(int inputParameter){
+    ObjektRef returnAdresse;
+    returnAdresse = (ObjektRef)malloc(sizeof(int) + sizeof(unsigned int));
+    if(returnAdresse != NULL){
+        returnAdresse -> size = sizeof(int);
+        *(int *)returnAdresse -> data = inputParameter;
+    }else {
+        printf("Heap Memory is not generated.\n");
+        exit(0);
+    }
+    return returnAdresse;
+}
+
 // METHODE for OPCODE
 
 
-int popValue(){
+int popValue(void){
     int popValue;
     if(sp > 0){
-        popValue = stack[sp-1];
         sp--; 
+        if(stack[sp].isObjektRef == 0){
+            popValue = stack[sp].u.value;
+        }else{
+            printf("Cannot pop an object.\n");
+            exit(2);
+        }
     }else{
         printf("Stack is empty.\n");
         exit(1);
@@ -107,9 +125,56 @@ int popValue(){
     return popValue;
 }
 
+ObjektRef popObjekt(void){
+    ObjektRef popObjekts;
+    if(sp > 0){
+        sp--;
+        if(stack[sp].isObjektRef == 1){
+            popObjekts = stack[sp].u.objektRef;
+        }else{
+            printf("Cannot pop a value.\n");
+            exit(2);
+        } 
+    }else{
+        printf("Stack is empty.\n");
+        exit(1);
+    }
+    return popObjekts;
+}
+
+int popStack(void){
+    int popStacks;
+    if(sp > 0){
+        if(stack[sp-1].isObjektRef == 0){
+            popStacks = popValue();
+        }else { 
+            tempresult = popObjekt();
+            popStacks = *(int *)tempresult->data;
+        }  
+    }else{
+        printf("Stack is empty.\n");
+        exit(0);
+    }
+    
+    return popStacks;
+}
+
+/*void pushStack(ObjektRef objekt){
+    if(sp < MAXITEMS){
+        if(stack[sp].isObjektRef==1){
+            pushObjekt(objekt);
+        }
+        else {
+            pushValue(*(int*)objekt->data);
+        }
+    }
+}
+*/
+
 void pushValue(int x) {
    if(sp < MAXITEMS){ 
-        stack[sp] = x;
+        stack[sp].isObjektRef = 0;
+         stack[sp].u.value = x;
         sp++;
    }else {
        printf("Stack is full.\n");
@@ -117,54 +182,64 @@ void pushValue(int x) {
    }
 }
 
+void pushObjekt(ObjektRef inputObjekt){
+    if(sp < MAXITEMS){
+        stack[sp].isObjektRef = 1;
+        stack[sp].u.objektRef = inputObjekt;
+        sp++;
+    }else if(sp >= MAXITEMS){
+        printf("Stack is full.\n");
+    }
+}
+
 void add(void) {
-    opresult = popValue();
-    pushValue(popValue() + opresult);
+    opresult = popStack();
+    pushObjekt(ObjektSpeicher(popStack() + opresult));
 }
 
 void sub(void) {
-    opresult = popValue();
-    pushValue(popValue() - opresult);
+    opresult = popStack();
+    pushObjekt(ObjektSpeicher(popStack() - opresult));
 }
 
 void mul(void) {
-    opresult = popValue();
-    pushValue(popValue() * opresult);
+    opresult = popStack();
+    pushObjekt(ObjektSpeicher(popStack() * opresult));
 }
 
 void divide(void) {
-    opresult = popValue();
+    opresult = popStack();
     if(opresult == 0){
         printf("divisor cannot be 0");
         exit(2);
     }
-    pushValue(popValue() / opresult);
+    pushObjekt(ObjektSpeicher(popStack() / opresult));
 }
 
 void mod(void) {
-    opresult = popValue;
-    pushValue(popValue() % opresult);
+    opresult = popStack();
+    pushObjekt(ObjektSpeicher(popStack() % opresult));
 }
 
 
 void rdint(void) {
     int input;
     scanf("%d", &input);
-    pushValue(input);
+    pushObjekt(ObjektSpeicher(input));
 }
 
 void wrint(void) {
-    printf("%d", popValue());
+    printf("%d", popStack());
 }
 
 void rdchr(void) {
     char input;
     scanf("%c", &input);
-    pushValue(input);
+    pushObjekt(ObjektSpeicher(input));
 }
 
 void wrchr(void) {
-    printf("%c", popValue());
+    printf("%c", popStack());
 }
 
 void pushg(int indexGlobal){
@@ -179,7 +254,7 @@ void popg(int indexGlobal){
     if(indexGlobal >= binaryData[3]){
          printf("The entered index is outside the stack data area\n");
     }else{
-       sda[indexGlobal]= popValue();
+       sda[indexGlobal]= popStack();
     }
 }
 
@@ -197,66 +272,66 @@ void asf(int asfLength){
 // releaseStackFame
 void rsf(void){       
     sp = fp;
-    fp = popValue();   
+    fp = popStack();   
 }
 
 void pushl(int indexLocal){
-    pushValue(stack[fp+indexLocal]);
+    pushValue(stack[fp+indexLocal].u.objektRef);
 }
 
 void popl(int indexLocal){
-    stack[fp+indexLocal]=popValue();
+    stack[fp+indexLocal].u.objektRef=popStack();
 }
 
 void eq(void){
-    if(popValue() == popValue()){
-        pushValue(1);
+    if(popStack() == popStack()){
+        pushObjekt(ObjektSpeicher(1));
     }else{
-        pushValue(0);
+        pushObjekt(ObjektSpeicher(0));
     }
 }
 
 void ne(void){
-     if(popValue() != popValue()){
-        pushValue(1);
+     if(popStack() != popStack()){
+        pushObjekt(ObjektSpeicher(1));
     }else{
-        pushValue(0);
+        pushObjekt(ObjektSpeicher(0));
     }
 }
 
 void lt(void){
-    opresult = popValue();
-      if(popValue() < opresult){
-        pushValue(1);
+    opresult = popStack();
+      if(popStack() < opresult){
+        pushObjekt(ObjektSpeicher(1));
     }else{
-        pushValue(0);
+        pushObjekt(ObjektSpeicher(0));
     }
 }
 
 void le(void){
-    opresult = popValue();
-    if(popValue() <= opresult){
-        pushValue(1);
+    opresult = popStack();
+    if(popStack() <= opresult){
+        pushObjekt(ObjektSpeicher(1));
     }else{
-        pushValue(0);
+        pushObjekt(ObjektSpeicher(0));
     }
 }
 
 void gt(void){
-    opresult = popValue();
-      if(popValue() > opresult){
-        pushValue(1);
+    opresult = popStack();
+    if(popStack() > opresult){
+        pushObjekt(ObjektSpeicher(1));
     }else{
-        pushValue(0);
+        pushObjekt(ObjektSpeicher(0));
     }
 }
 
 void ge(void){
-    opresult = popValue();
-      if(popValue() >= opresult){
-        pushValue(1);
+    opresult = popStack();
+    if(popStack() >= opresult){
+        pushObjekt(ObjektSpeicher(1));
     }else{
-        pushValue(0);
+        pushObjekt(ObjektSpeicher(0));
     }
 }
 
@@ -265,14 +340,14 @@ void jmp(int x){
 }
 
 void brf(int x){
-    opresult= popValue();
+    opresult= popStack();
     if(opresult == 0){
         jmp(x);
     }
 }
 
 void brt(int x){
-    opresult = popValue();
+    opresult = popStack();
     if(opresult == 1){
         jmp(x);
     }
@@ -284,7 +359,7 @@ void call(int callIndex){
 }
 
 void ret(void){
-    pc=popValue();
+    pc=popStack();
 }
 
 void drop(int number){
@@ -296,11 +371,11 @@ void pushr(void){
 }
 
 void popr(void){
-    registerValue=popValue();
+    registerValue=popStack();
 }
 
 void dup(void){
-    pushValue(stack[sp-1]);
+    pushObjekt(stack[sp-1].u.objektRef);
 }
 
 
@@ -548,39 +623,73 @@ void runInstruction(void){
 }   
 
 void inspectStack(void){
-    int i,j;
-    if(sp == 0){
-        printf("sp,fp       -->     %04d:   xxxx\n",sp);
+    int i,k;
+    if(sp==0){
+        printf("sp, fp    -->     %04d:   (xxxxxx)  xxxxxx\n",sp);
     }else{
-        if(sp == fp){
-            printf("sp,fp   -->     %04d:   xxxx\n",sp);
-            for(i=sp-1; i>=0;i--){
-                printf("                %04d:   %d\n",i,stack[i]);
+        printf("sp      -->     %04d:   (xxxxxx) xxxxxx\n",sp);
+        for(i=sp-1;i>fp;i--){
+            if(stack[i].isObjektRef==1){
+                printf("                %04d:   (objektReferenz) %p\n",i,stack[i].u.objektRef->data);
+            }else{
+                printf("                %04d:   (value) %d\n",i,stack[i].u.value);
             }
-
+        }
+        if(stack[fp].isObjektRef==1){
+            printf("fp      -->     %04d:   (objektReferenz) %p\n",fp,stack[fp].u.objektRef->data);
         }else{
-            printf("sp      -->  %04d:   xxx\n",sp);
-            for(i=sp-1; i>fp;i--){
-            printf("             %04d:   %d\n",i,stack[i]);
-            }
-
-            printf("fp      -->  %04d:   %d\n",fp,stack[fp]);
-            if(fp!=0){
-                for(j=fp-1; j>=0; j--){
-                printf("             %04d:   %d\n",j,stack[j]);
+            printf("fp      -->     %04d:   (value) %d\n",fp,stack[fp].u.value);
+        }
+        if(fp!=0){
+            for(k=fp-1;k>=0;k--){
+                if(stack[k].isObjektRef==1){
+                    printf("                %04d:   (objektReferenz) %p\n",k,stack[k].u.objektRef->data);
+                }else{
+                    printf("                %04d:   (value) %d\n",k,stack[k].u.value);
                 }
-            } 
+            }
         }
     }
     printf("                ---- bottom of stack ----\n");
 }
-
 void inspectData(void){
     int i;
     for(i=0; i<binaryData[3]; i++){
-        printf("data[%04d]:         %d\n",i,sda[i]);
+        printf("data[%04d]:         (objektReferenz) %p\n",i,sda[i]->data);
     }
     printf("                ---- end of data ----\n");
+}
+
+void inspectObject(void){
+    unsigned long objMemory=0;/*unsigned Long, da ist die Adresse so groß als 32 Bits ist*/
+    int k, objectValue=0 , objectIsFound=0;/*checkt ob das Object falsche oder nicht gefunden ist*/
+    printf("Object reference ?\n");
+    scanf("%lx",&objMemory);/*bei scanf wird die ObjectSpreicher um 4 erhöht*/
+    objMemory=objMemory-0x004;/*es muss darüber nachfragen. Warum wird 4 bites jedes mal hinzugefügt*/
+    tempresult=(ObjektRef)objMemory;
+    if(sp>0){
+        for(k=0;k<sp;k++){/*läuft durch den Stack*/
+            if((tempresult==(stack[k].u.objektRef))&&(stack[k].isObjektRef==1)){ 
+                objectValue =*(int *)(stack[k].u.objektRef->data);/*print die value, die auf dem Stack gelegene Adresse*/
+                objectIsFound=1;/*wenn das object gefunden ist, nimmt valueIsFound ein 1*/
+                break;
+            }
+        }
+    }
+    if(objectIsFound==0 && binaryData[3]>0){/*wenn das Object nicht im Stack gefunden ist, dann wird er in der Static Area Static gesucht*/
+        for(k=0;k<binaryData[3];k++){/*läuft durch den Static data Area*/
+            if((tempresult==sda[k])){
+                objectValue=*(int *)(sda[k]->data);
+                objectIsFound=1;
+                break;
+            }
+        }
+    }
+    if(objectIsFound==0){
+        printf("Object not found\n");/*gibt Object not found aus, wenn es nicht richtig geschrieben ist, oder kein gibt*/
+    }else{
+        printf("Value: %d \n",objectValue);
+    }
 }
 
 void list(void){
@@ -633,13 +742,15 @@ void debugger(void){
             debugIsOn = 0;
             exit(99);
         }else if(strcmp(charMemory,"inspect")==0){
-            printf("DEBUG [inspect]: stack, data?\n");
+            printf("DEBUG [inspect]: stack, data, object?\n");
                 scanf("%s",charMemory);   
                 if(strcmp(charMemory,"stack")==0){
                     inspectStack();
                 }else if(strcmp(charMemory,"data")==0){
                     inspectData();
-                }else{
+                }else if(strcmp(charMemory,"object")==0){
+                    inspectObject();  
+            }   else{
                     printf("DEBUG: inspect, list, breakpoint, step, run, quit?\n");
                     scanf("%s",charMemory);
                 }   
