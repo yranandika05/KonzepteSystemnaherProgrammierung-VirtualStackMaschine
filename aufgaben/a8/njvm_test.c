@@ -121,20 +121,20 @@ void generateMemory(int programMemoryLength, int dataStaticAreaLength, int defau
     heap = (char *)malloc(sizeOfHeap);
     if(heap == NULL){
         printf("Heap is not generated");
-        exit(1);
+        exit(139);
     }
 
     sizeOfStack = defaultSizeOfStack * KILOBYTE;
     stack = (StackSlot *)malloc(sizeOfStack);
     if(stack == NULL){
         printf("Heap is not generated");
-        exit(1);
+        exit(139);
     }
     
     sda = (ObjRef*)malloc(dataStaticAreaLength * sizeof(int));
     if(sda == NULL){
         printf("The data static area is not generated! \n");
-        exit(1);
+        exit(139);
     }
     for(int k=0; k<dataStaticAreaLength; k++){
         if(sda[k] != NULL){
@@ -145,7 +145,7 @@ void generateMemory(int programMemoryLength, int dataStaticAreaLength, int defau
     programMemory = (unsigned int*)malloc(programMemoryLength* sizeof(int));
     if(programMemory == NULL){
         printf("The program memory is not generated! \n");
-        exit(1);
+        exit(139);
     }
 
     heapTarget = heap;
@@ -172,7 +172,7 @@ ObjRef copyPhase(ObjRef orig){
             heapFreePointer += sizeof(unsigned int)+(sizeof(unsigned char)*GET_SIZE(orig));
         }else{
             printf("Heap Overflow.\n");
-            exit(1);
+            exit(0);
         }
     }else{
         if((heapFreePointer + sizeof(unsigned int) + (sizeof(ObjRef)*GET_SIZE(orig)) <= halfHeap)){
@@ -180,7 +180,7 @@ ObjRef copyPhase(ObjRef orig){
             heapFreePointer += sizeof(unsigned int) + (sizeof(ObjRef)*GET_SIZE(orig));
         }else{
             printf("Heap Overflow.\n");
-            exit(1);
+            exit(0);
         }
     }
     return copy;
@@ -242,7 +242,7 @@ void scanPhase(void){
     while (scan != heapFreePointer ) {
         /* es gibt noch Objekte , die gescannt werden müssen */
         if(IS_PRIM((ObjRef)scan)){
-            //scan += sizeof(unsigned int) + GET_SIZE((ObjRef)scan) * sizeof(unsigned char);
+            scan += sizeof(unsigned int) + GET_SIZE((ObjRef)scan) * sizeof(unsigned char);
         }else{
             for(int i=0;i<GET_SIZE((ObjRef)scan);i++){
                 *(GET_REFS((ObjRef)scan)+i) = relocate(*(GET_REFS((ObjRef)scan)+i));
@@ -266,7 +266,7 @@ ObjRef pushHeap( int sizeOfObject){
    
     if (object == NULL) {
         printf("object is NULL.\n");
-        exit(1);
+        exit(0);
     }
     heapFreePointer += sizeOfObject;
     return (ObjRef)object;
@@ -284,7 +284,7 @@ ObjRef ObjectSpeicher(int numObjRefs){
         }
     }else { 
         printf("Heap Memory is not generated.\n");
-        exit(1);
+        exit(0);
     }
     return objectAddress;
 }
@@ -326,11 +326,11 @@ int popValue(void){
             popValue = stack[sp].u.value;
         }else{
             printf("Cannot pop an object.\n");
-            exit(1);
+            exit(0);
         }
     }else{
         printf("Stack is empty.\n");
-        exit(1);
+        exit(0);
     }
     return popValue;
 }
@@ -346,7 +346,7 @@ ObjRef popObjekt(void){
         } 
     }else{
         printf("Stack is empty.\n");
-        exit(1);
+        exit(0);
     }
     
 }
@@ -362,7 +362,7 @@ int popStack(void){
         }  
     }else{
         printf("Stack is empty.\n");
-        exit(1);
+        exit(0);
     }
     
     return popStacks;
@@ -375,7 +375,7 @@ void pushValue(int x) {
         sp++;
    }else {
        printf("Stack is full.\n");
-       exit(1);
+       exit(0);
    }
 }
 
@@ -451,7 +451,7 @@ void wrchr(void) {
 void pushg(int indexGlobal){
     if(indexGlobal >= binaryData[3]){
         printf("The entered index is outside the stack data area.\n");
-        exit(1);
+        exit(0);
     }else{
         pushObjekt(sda[indexGlobal]);
         
@@ -461,7 +461,7 @@ void pushg(int indexGlobal){
 void popg(int indexGlobal){
     if(indexGlobal >= binaryData[3]){
          printf("The entered index is outside the stack data area\n");
-         exit(1);
+         exit(0);
     }else{
         if(sp > 0){
             sda[indexGlobal] = popObjekt();   
@@ -481,7 +481,7 @@ void asf(int asfLength){
         }
     }else{
         printf("There is not enough space to add a local area\n");
-        exit(1);
+        exit(0);
     }   
 }
 
@@ -647,7 +647,7 @@ void getfa(){
     bip.rem = popObjekt(); // ARRAY
     if(bigToInt()<0 && bigToInt()>=GET_SIZE((ObjRef)bip.rem)){
         printf("ERROR : Out of Index.\n");
-        exit(1);       
+        exit(0);       
     }else{
         pushObjekt(*(GET_REFS((ObjRef)bip.rem) + bigToInt()));
     }
@@ -659,7 +659,7 @@ void putfa(){
     bip.rem = popObjekt(); //ARRAY
     if(bigToInt()<0 && bigToInt()>GET_SIZE(bip.rem)){
         printf("ERROR : Out of Index.\n");
-        exit(1);   
+        exit(0);   
     }else{
         *(GET_REFS(bip.rem) + bigToInt()) = bip.op2;
     }
@@ -682,7 +682,7 @@ void pushn(void){
             sp++;
     }else{
         printf("Stack is full. \n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -1000,7 +1000,7 @@ void runInstruction(void){
         pc++;
         execute(instruction);
             if(instruction==0){
-                exit(1);
+                exit(0);
             }
         } 
     }else{
@@ -1010,154 +1010,11 @@ void runInstruction(void){
             execute(instruction);
         }
         pc=0; 
-        exit(1);
+        exit(0);
     }
     instruction=99;    
 }   
 
-void list(void){
-    int programmCounterBehaelter;
-    programmCounterBehaelter=pc;
-    pc=0;
-    while(pc<binaryData[2]){
-            instruction = programMemory[pc];
-            print(instruction);         
-            pc++;
-        }       
-    instruction=99;
-    pc=programmCounterBehaelter;
-    printf("                ---- end of programm ----\n");
-}
-void inspectStack(void){
-    int i,k;
-    if(sp==0){
-        printf("sp, fp    -->     %04d:   (xxxxxx)  xxxxxx\n",sp);
-    }else{
-        printf("sp      -->     %04d:   (xxxxxx) xxxxxx\n",sp);
-        for(i=sp-1;i>fp;i--){
-            if(stack[i].isObjektRef==1){
-                printf("                %04d:   (objref) %p\n",i,(void*)stack[i].u.objRef);
-            }else{
-                printf("                %04d:   (number) %d\n",i,stack[i].u.value);
-            }
-        }
-        if(stack[fp].isObjektRef==1){
-            printf("fp      -->     %04d:   (objref) %p\n",fp,(void*)stack[fp].u.objRef);
-        }else{
-            printf("fp      -->     %04d:   (number) %d\n",fp,stack[fp].u.value);
-        }
-        if(fp!=0){
-            for(k=fp-1;k>=0;k--){
-                if(stack[k].isObjektRef==1){
-                    printf("                %04d:   (objref) %p\n",k,(void*)stack[k].u.objRef);
-                }else{
-                    printf("                %04d:   (number) %d\n",k,stack[k].u.value);
-                }
-            }
-        }
-    }
-    printf("                ---- bottom of stack ----\n");
-}
-void inspectData(void){
-    int i;
-    for(i=0;i<binaryData[3];i++){
-        printf("data[%04d]:       (objeref) %p\n",i,(void*)sda[i]);
-    }
-    printf("                ---- end of data ----\n");
-}
-void inspectObject(void){
-    int k;
-    printf("Object reference ?\n");
-    scanf("%p",(void**)&bip.op1);
-    if(IS_PRIM(bip.op1)){
-        printf("<primitive object>\nValue =         ");
-        bigPrint(stdout);
-        printf("\n");
-    }else{
-        printf("<compound object>\n");
-        printf("Size of compound object: %d, with sizeOf:  %ld\n",GET_SIZE(bip.op1),sizeof(bip.op1));
-        for(k=0;k<GET_SIZE(bip.op1);k++){
-            bip.op2 =*(GET_REFS(bip.op1) + k);
-            printf("field[%04d]:	(objref)  %p     \n",k,(void*)bip.op2);
-        }
-    }
-    printf("                ---- end of object ----\n");
-}
-void inspectHeap(void){
-    printf("heap: %p\n",(void*)(ObjRef)(heap));
-    printf("targetHeap: %p\n",(void*)(ObjRef)(heapTarget));
-    printf("toSpace: %p\n",(void*)(ObjRef)(toSpace));
-    printf("heapScanPointer: %p\n",(void*)(ObjRef)(scan));
-    printf("HeapFreiPointer: %p\n",(void*)(ObjRef)(heapFreePointer));
-    printf("                ---- end of heap ----\n");
-}   
-void breakPointSet(void){
-    scanf("%d",&stopPoint);
-    if(stopPoint>0){
-        stopPoint=stopPoint;
-        printf("DEBUG [breakpoint]: now set at %d\n",stopPoint);
-    }else if(stopPoint<0){
-        stopPoint=-1;
-        printf("DEBUG [breakpoint]: now cleared\n");
-    }
-}
-void quit(void){
-    exit(1);
-}
-void step(void){
-    instruction = programMemory[pc];
-    print(instruction);
-    pc++;
-    execute(instruction);   
-    if(instruction==0){
-        exit(0);
-    }
-}
-
-void runDebuger(void){
-    printf("DEBUG: file   :  '%s'\n       code   :  %d instructions\n       data   :  %d objects\n       stack  :  %ld slots\n       heap   :  2 * %d bytes\n",dataName,binaryData[2],binaryData[3],(sizeOfStack/sizeof(StackSlot)),(sizeOfHeap/2));
-    while ((isQuit!=1)){
-        printf("DEBUG: inspect, list, breakpoint, step, run, quit?\n");
-        scanf("%s",charMemory);
-        if(strncmp(charMemory,"quit",1)==0){
-            isQuit=1;
-            debugIsOn=0;
-            exit(0);
-        }else if(strncmp(charMemory,"inspect",1)==0){
-            printf("DEBUG [inspect]: stack, data, object, heap?\n");
-            scanf("%s",charMemory);   
-            if((strncmp(charMemory,"stack",1)==0)){
-                inspectStack();
-            }else if(strncmp(charMemory,"data",1)==0){
-                inspectData();
-            }else if(strncmp(charMemory,"object",1)==0){
-                inspectObject();  
-            }else if(strncmp(charMemory,"heap",1)==0){
-                inspectHeap();  
-            }else{
-                printf("DEBUG: inspect, list, breakpoint, step, run, quit?\n");
-                scanf("%s",charMemory);    
-            }
-        }else if((strncmp(charMemory,"step",1)==0)){
-            step();
-        }else if(strncmp(charMemory,"list",1)==0){
-            list();
-        }else if(strncmp(charMemory,"breakpoint",1)==0){
-            if(stopPoint!=-1){
-                printf("DEBUG [breakpoint]: set at %d\n",stopPoint);
-            }else{
-                printf("DEBUG [breakpoint]: cleared\n");
-            }
-            printf("DEBUG [breakpoint]: address to set, -1 to clear, <ret> for no change?\n");
-            breakPointSet();
-        }else if(strncmp(charMemory,"run",1)==0){
-            runInstruction();   
-            if(stopPoint<0){
-                exit(0);
-            }
-        } 
-    } 
-}
 
 
 
@@ -1202,11 +1059,11 @@ int main (int argc, char *argv[]) {
         }else if(argc>2 && strcmp(argv[i],"--stack")==0){
             if((argv[i+1]==NULL)){
                 printf("Please input Stack size");
-                exit(1);
+                exit(0);
             }   
             if((atoi(argv[i+1])==0)){
                 printf("Stack Size cant be 0");
-                exit(1);
+                exit(0);
             }
             numberOfInput --;
             defaultSizeOfStack=atoi(argv[i+1]);
@@ -1214,19 +1071,19 @@ int main (int argc, char *argv[]) {
         }else if(argc>2 && strcmp(argv[i],"--heap")==0){
             if(argv[i+1]==NULL){
                 printf("Heap size is missing");
-                exit(1);
+                exit(0);
             }
             if((atoi(argv[i+1])==0)){
                 printf("illegal heap size");
-                exit(1);
+                exit(0);
             }
             numberOfInput --;
             defaultSizeOfHeap=atoi(argv[i+1]);
             
-        }else if(argc>2 && strcmp(argv[2],"--gcstats")==0){
+        }else if(argc>2 && strcmp(argv[i],"--gcstats")==0){
             
 
-        }else if(argc>2 && strcmp(argv[2],"--gcpurge")==0){
+        }else if(argc>2 && strcmp(argv[i],"--gcpurge")==0){
             
 
         }else if(((argv[i][0]) == '-')){
@@ -1237,11 +1094,11 @@ int main (int argc, char *argv[]) {
   
     if(numberOfInput<1){
         printf("Error: no code file specified\n");
-        exit(1);
+        exit(0);
     }
     if(numberOfInput>1 ){
         printf("Error: more than one code file specified\n");
-        exit(1);
+        exit(0);
     }
 
 
@@ -1251,21 +1108,21 @@ int main (int argc, char *argv[]) {
             
             if(filePointer == NULL){
                 printf("Error: cannot open file '%s'\n",dataName);
-                exit(1);
+                exit(0);
             }
             if(fread(binaryData,sizeof(int),4,filePointer)!=4){
                 printf("Error: cannot read file '%s'\n",dataName);
-                exit(1);
+                exit(0);
             }  
             if(binaryData[0]!= 0x46424a4e){
                 printf("falsche Datei typ\n");
-                exit(1);
+                exit(0);
             }
                         
             generateMemory(binaryData[2],binaryData[3], defaultSizeOfHeap, defaultSizeOfStack);
             if(fread(programMemory,sizeof(unsigned int),binaryData[2],filePointer)!=binaryData[2]){
                 printf("anzahl der Inestruktion nicht genug\n");
-                exit(1);
+                exit(0);
             }
             if(debugIsOn==1){
                 //runDebuger();
