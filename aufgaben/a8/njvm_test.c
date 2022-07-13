@@ -74,9 +74,6 @@ unsigned int instruction = 99;
 char* fileName;
 int dataPosition = -1;
 char* dataName;
-int stopPoint = -1;
-int isQuit = 0;
-int debugIsOn = 0;
 int opresult;
 int sizeOfStack;
 int sizeOfHeap;
@@ -136,11 +133,12 @@ void generateMemory(int programMemoryLength, int dataStaticAreaLength, int defau
         printf("The data static area is not generated! \n");
         exit(139);
     }
+    /*
     for(int k=0; k<dataStaticAreaLength; k++){
         if(sda[k] != NULL){
             sda[k] = NULL;
         }
-    }
+    }*/
 
     programMemory = (unsigned int*)malloc(programMemoryLength* sizeof(int));
     if(programMemory == NULL){
@@ -276,15 +274,15 @@ ObjRef pushHeap( int sizeOfObject){
 ObjRef ObjectSpeicher(int numObjRefs){
     ObjRef objectAddress;
     objectAddress = (ObjRef)pushHeap(sizeof(int) + (sizeof(ObjRef)*numObjRefs));
-    if(objectAddress != NULL){
+    if(objectAddress == NULL){
+        printf("Heap Memory is not generated.\n");
+        exit(0);
+    }else { 
         objectAddress->size = (unsigned int)(MSB | numObjRefs);
         for(int k=0; k<numObjRefs; k++){
             
             *(GET_REFS(objectAddress)+k) = NULL; 
         }
-    }else { 
-        printf("Heap Memory is not generated.\n");
-        exit(0);
     }
     return objectAddress;
 }
@@ -321,9 +319,9 @@ void * getPrimObjectDataPointer(void * obj){
 int popValue(void){
     int popValue;
     if(sp > 0){
-        sp--; 
-        if(stack[sp].isObjektRef == 0){
-            popValue = stack[sp].u.value;
+        if(stack[sp-1].isObjektRef == 0){
+            popValue = stack[sp-1].u.value;
+            sp--;
         }else{
             printf("Cannot pop an object.\n");
             exit(0);
@@ -336,10 +334,11 @@ int popValue(void){
 }
 
 ObjRef popObjekt(void){
+    ObjRef popObject;
     if(sp > 0){
-        sp--;
-        if(stack[sp].isObjektRef == 1){
-             return stack[sp].u.objRef;
+        if(stack[sp-1].isObjektRef == 1){
+             popObject = stack[sp-1].u.objRef;
+             sp--;
         }else{
             printf("Cannot pop a value.\n");
             exit(2);
@@ -348,7 +347,7 @@ ObjRef popObjekt(void){
         printf("Stack is empty.\n");
         exit(0);
     }
-    
+    return popObject;
 }
 
 int popStack(void){
@@ -369,7 +368,7 @@ int popStack(void){
 }
 
 void pushValue(int x) {
-   if(sp < MAXITEMS){ 
+   if(sp < (defaultSizeOfStack * 1024) / sizeof(StackSlot)){ 
         stack[sp].isObjektRef = 0;
          stack[sp].u.value = x;
         sp++;
@@ -380,7 +379,7 @@ void pushValue(int x) {
 }
 
 void pushObjekt(ObjRef inputObjekt){
-    if(sp < MAXITEMS){
+    if(sp < (defaultSizeOfStack * 1024) / sizeof(StackSlot)){
         stack[sp].isObjektRef = 1;
         stack[sp].u.objRef = inputObjekt;
         sp++;
@@ -502,7 +501,7 @@ void popl(int indexLocal){
 void eq(void){
     bip.op2 = popObjekt();
     bip.op1 = popObjekt();
-    if(bigCmp()==1){
+    if(bigCmp()==0){
         bigFromInt(1);
         pushObjekt(bip.res);
     }else{
@@ -514,7 +513,7 @@ void eq(void){
 void ne(void){
     bip.op2 = popObjekt();
     bip.op1 = popObjekt();
-    if(bigCmp()!=1){
+    if(bigCmp()!=0){
         bigFromInt(1);
         pushObjekt(bip.res);
     }else{
@@ -552,7 +551,7 @@ void le(void){
 void gt(void){
     bip.op2 = popObjekt();
     bip.op1 = popObjekt();
-    if(bigCmp()>1){
+    if(bigCmp()>0){
         bigFromInt(1);
         pushObjekt(bip.res);
     }else{
@@ -564,7 +563,7 @@ void gt(void){
 void ge(void){
     bip.op2 = popObjekt();
     bip.op1 = popObjekt();
-    if(bigCmp()>=1){
+    if(bigCmp()>=0){
         bigFromInt(1);
         pushObjekt(bip.res);
     }else{
@@ -676,7 +675,7 @@ void getsz(void){
 }
 
 void pushn(void){
-    if(sp<MAXITEMS){
+    if(sp<(defaultSizeOfStack * 1024) / sizeof(StackSlot)){
             stack[sp].isObjektRef = 1;
             stack[sp].u.objRef = NULL;
             sp++;
@@ -994,30 +993,17 @@ void runInstruction(void){
     if(pc==0){
         printf("Ninja Virtual Machine started\n");
     }
-    if(stopPoint>1){
-       while((pc!= stopPoint)&&(instruction!=0)){
+    
+    while(instruction!=0){
         instruction = programMemory[pc];
         pc++;
         execute(instruction);
-            if(instruction==0){
-                exit(0);
-            }
-        } 
-    }else{
-        while(instruction!=0){
-            instruction = programMemory[pc];
-            pc++;
-            execute(instruction);
-        }
-        pc=0; 
-        exit(0);
     }
+    pc=0; 
+    exit(0);
+    
     instruction=99;    
 }   
-
-
-
-
 
 
  // MAIN
@@ -1055,7 +1041,7 @@ int main (int argc, char *argv[]) {
             printf("Error: no code file specified\n");
             exit(0);
         }else if(argc>2 && strcmp(argv[2],"--debug")==0){
-            debugIsOn = 1;
+            
         }else if(argc>2 && strcmp(argv[i],"--stack")==0){
             if((argv[i+1]==NULL)){
                 printf("Please input Stack size");
@@ -1115,7 +1101,7 @@ int main (int argc, char *argv[]) {
                 exit(0);
             }  
             if(binaryData[0]!= 0x46424a4e){
-                printf("falsche Datei typ\n");
+                printf("Input file is not a .bin data\n");
                 exit(0);
             }
                         
@@ -1124,11 +1110,9 @@ int main (int argc, char *argv[]) {
                 printf("anzahl der Inestruktion nicht genug\n");
                 exit(0);
             }
-            if(debugIsOn==1){
-                //runDebuger();
-            }else{
-                runInstruction();
-            }
+            
+            runInstruction();
+            
             free(sda);  
             free(programMemory);
            
