@@ -1,2 +1,3 @@
-Yohanes Ranandika Kirana
-	5310931
+[]Ninja Virtual Maschine (NJVM)
+
+This assignment is a requirement for the Konzepte Systemnaher Programmierung exam. This assignment aims to program NJVM (Ninja Virtual Maschine) which is basically a Virtual Stack Maschine. This VSM programming uses the C++ language. VSM works by running math operation commands on a stack. In addition, there are also some additional commands such as jump, jump if true, jump if false, a comparison operation that returns 1 if true and 0 if false. Besides being able to operate with numbers, VSM can also operate using objects that have data in the form of numbers. As a data storage, there are 2 types of storage, namely a stack in the form of an array, and also SDA (Static Data Area) which uses Malloc to store data globally on the Heap. 
